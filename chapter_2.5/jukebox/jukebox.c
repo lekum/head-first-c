@@ -7,9 +7,7 @@ void find_track(char search_for[], char track_list[][MAX_LEN])
     int i;
     for (i = 0; i < 5; i++)
     {
-        printf("track_list[%i] = %s\n", i, track_list[i]);
-        printf("search_for = %s\n", search_for);
-        if (wcsstr(track_list[i], search_for))
+        if (strstr(track_list[i], search_for))
         {
             printf("Track %i: '%s'\n", i, track_list[i]);
         }
