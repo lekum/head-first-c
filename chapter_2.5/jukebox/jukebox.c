@@ -9,7 +9,7 @@ void find_track(char search_for[], char track_list[][MAX_LEN])
     {
         if (strstr(track_list[i], search_for))
         {
-            printf("Track %i: '%s'\n", i, track_list[i]);
+            printf("\nTrack %i: '%s'\n", i, track_list[i]);
         }
     }
 }
