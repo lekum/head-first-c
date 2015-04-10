@@ -1,0 +1,131 @@
+<html>
+  <head>
+    <title>Geo-locater</title>
+    <meta name = "viewport" content = "width = device-width" />
+<link href='http://fonts.googleapis.com/css?family=Reenie+Beanie' rel='stylesheet' type='text/css'>
+<style>
+h1,h2,h3 { font-family: 'Reenie Beanie', arial, serif; }
+h3 { font-size: 24pt;}
+h3 {margin-height: 0px; padding-height: 0px;}
+</style>
+    <script
+      src="http://maps.google.com/maps?file=api&v=2&sensor=false&key=ABQIAAAAhe6A1R99SP0ZrzrGWvxAGhTxlmiqFq6g3CyxFjB8wYZ-6Qhm2xR9q8I_qUx-qrlwl6UPonK52krpFQ"
+      type="text/javascript"></script>
+<!--
+    <script
+       src="http://maps.google.com/maps?file=api&v=2&key=ABQIAAAAhe6A1R99SP0ZrzrGWvxAGhQ-HP9w2GiAj3fY8FJaHBdkABCGxxQUUoGVdJQVwot2UGMiBOnQQAatCA"
+       type="text/javascript"></script> -->
+    <script src="output.json" type="text/javascript">
+    </script>
+    <script type="text/javascript">
+      var map_location = new GLatLng(0, 0);
+      var marker;
+      var map;
+      var markers = [];
+      var oldest_marker = 1;
+      var max_markers = 100;
+
+      function createMarker(point, label, html) {
+      var mark1 = new GMarker(point);
+      mark1.enableDragging();
+      mark1.bouncy = true;
+      GEvent.addListener(mark1, "click",
+      function() {
+      map_location = mark1.getPoint();
+      map.panTo(map_location);
+      var a = "";
+      mark1.openInfoWindowHtml("<div align='left'><strong>" + label + "</strong><br/>"
+        + html + "</div>");
+      }
+      );
+      return mark1;
+      }
+
+      function textFor(element, tag) {
+      return element.getElementsByTagName(tag)[0].firstChild.nodeValue;
+      }
+
+      function setAMarker(point) {
+      if (point) {
+      var lat = point.latitude;
+      if ((lat < -90) || (lat > 90)) {
+        alert("Invalid latitude: '" + lat + "'");
+        return;
+      }
+      var lng = point.longitude;
+      if ((lng < -90) || (lng > 90)) {
+        alert("Invalid longitude: '" + lng + "'");
+        return;
+      }
+      lat = lat + ((Math.random() - 0.5) /  100000000000.0);
+      lng = lng + ((Math.random() - 0.5) /  100000000000.0);
+      var html = point.info;
+      var label = "[" + point.latitude + ", " + point.longitude + "]";
+      point = new GLatLng(lat, lng);
+      var marker = createMarker(point,label,html);
+      map.addOverlay(marker);
+      if (markers.length > max_markers) {
+      map.removeOverlay(markers[oldest_marker]);
+      oldest_marker++;
+      if (oldest_marker >= max_markers) {
+      oldest_marker = 0;
+      }
+      }
+      var next_marker = oldest_marker - 1;
+      if (next_marker < 0) {
+                        next_marker = max_markers - 1;
+                        }
+                        markers[next_marker] = marker;
+                        }
+                        }
+
+                        function loadData(url) {
+                            var points = data;
+                            for (var i = 0; i < points.length; i++) {
+                                setAMarker(points[i]);
+                            }
+                        }
+
+                                            var last_request = 0;
+                                            var dataFile;
+
+                                            function initialize() {
+                                            if (GBrowserIsCompatible()) {
+                                            map = new GMap2(document.getElementById("map"));
+                                            map.setCenter(map_location, 16);
+                                            map.setZoom(2);
+                                            map.addControl(new GLargeMapControl());
+                                            map.addControl(new GHierarchicalMapTypeControl());
+                                            map.enableScrollWheelZoom();
+                                            map.enableDoubleClickZoom();
+                                            map.enableGoogleBar();
+                                            map.setMapType(G_HYBRID_MAP);
+                                            }
+                                            var orig_query  = window.location.search;
+                                            if ((orig_query != null) && (orig_query.length > 0)) {
+                        orig_query = orig_query.substring(1);
+                        query = unescape(orig_query);
+                        var geocoder = new GClientGeocoder();
+                        geocoder.getLatLng(
+                        query,
+                        function(point) {
+                        if (point) {
+                        map.setCenter(point);
+                        map.setZoom(13);
+                        onMapMove();
+                        }
+                        }
+                        );
+                        }
+                        loadData(dataFile);
+                        }  
+                        </script>
+  </head>
+  <body onload="initialize()" style="margin-width: 0 0 0 0">
+    <div id="map"
+         align="right"
+         style="position: absolute; top: 0px; left: 0px;
+		height: 100%;
+		width: 100%;"></div>
+  </body>
+</html>
