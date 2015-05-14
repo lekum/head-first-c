@@ -1,8 +1,12 @@
-test_code: encrypt checksum
-	gcc -o test_code.out test_code.c encrypt.o checksum.o
 
-encrypt: encrypt.c encrypt.h
+encrypt.o: encrypt.c encrypt.h
 	gcc -c encrypt.c -o encrypt.o
 
-checksum: checksum.c checksum.h
+checksum.o: checksum.c checksum.h
 	gcc -c checksum.c -o checksum.o
+
+libhfsecurity.a: encrypt.o checksum.o
+	ar -rcs libhfsecurity.a encrypt.o checksum.o
+
+test_code: libhfsecurity.a  test_code.c
+	gcc -o test_code.out test_code.c -I. -L. -lhfsecurity
