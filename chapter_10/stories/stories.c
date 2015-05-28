@@ -2,6 +2,7 @@
 #include <errno.h>
 #include <string.h>
 #include <unistd.h>
+#include <sys/wait.h>
 
 void error(char *msg)
 {
@@ -22,7 +23,8 @@ int main(int argc, char *argv[])
     {
         error("Can't fork process");
     }
-    if (!pid) {
+    if (!pid)
+    {
         if (dup2(fileno(f), 1) == -1)
         {
             error("Can't redirect Standard Output");
@@ -33,5 +35,12 @@ int main(int argc, char *argv[])
             error("Can't run script");
         }
     }
+    int pid_status;
+    if (waitpid(pid, &pid_status, 0) == -1)
+    {
+        error("Error waiting for child process");
+    }
+    if (WEXITSTATUS(pid_status))
+        puts("Error status non-zero");
     return 0;
 }
