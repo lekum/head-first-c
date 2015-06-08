@@ -21,20 +21,23 @@ int read_in(int socket, char *buf, int len)
     char *s = buf;
     int slen = len;
     int c = recv(socket, s, slen, 0);
+    fprintf(stderr, "\nFirst recv: %s, %i bytes\n", s, c);
     // The telnet string received ends in \r\n
-    while ((c > 0) && (s[c -1] != '\n'))
+    while ((c > 0) && (s[c - 1] != '\n'))
     {
         // Take on account the part of the buffer written
         slen -= c;
-        s+= c;
+        s += c;
         c = recv(socket, s, slen, 0);
+        fprintf(stderr, "\nrecv: %s, %i bytes\n", s, c);
     }
     if (c < 0)
         return  c; // There is an error
     else if (c == 0)
         buf[0] = '\0'; // Send back an empty string
     else
-        s[c - 1] = '\0'; // Replace the '\n' character with a '\0'
+        s[c - 2] = '\0'; // Replace the '\n' character with a '\0'
+    fprintf(stderr, "Received: %s, %i bytes\n", buf, len - slen);
     return len - slen; // Return the bytes read
 }
 
@@ -69,7 +72,7 @@ int say(int socket, char *s)
     int result = send(socket, s, strlen(s), 0);
     if (result == -1)
         fprintf(stderr, "%s: %s\n",
-                "Error talking to client:", strerror(errno));
+                "Error talking to client", strerror(errno));
     return result;
 }
 
@@ -99,9 +102,9 @@ int catch_signal(int sig, void (*handler)(int))
 void service_client(int socket)
 {
     char *questions[] = {
-                        "Knock! Knock!",
-                        "Oscar",
-                        "Oscar silly question, you get a silly answer"
+                        "Knock! Knock!\r\n",
+                        "Oscar\r\n",
+                        "Oscar silly question, you get a silly answer\r\n"
                        };
     char answer[ANSWER_LEN];
     char silence[] = "Next time say something";
