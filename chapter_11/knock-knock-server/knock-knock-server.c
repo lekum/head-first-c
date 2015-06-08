@@ -21,23 +21,21 @@ int read_in(int socket, char *buf, int len)
     char *s = buf;
     int slen = len;
     int c = recv(socket, s, slen, 0);
-    fprintf(stderr, "\nFirst recv: %s, %i bytes\n", s, c);
+    slen -= c;
     // The telnet string received ends in \r\n
     while ((c > 0) && (s[c - 1] != '\n'))
     {
         // Take on account the part of the buffer written
-        slen -= c;
         s += c;
         c = recv(socket, s, slen, 0);
-        fprintf(stderr, "\nrecv: %s, %i bytes\n", s, c);
+        slen -= c;
     }
     if (c < 0)
         return  c; // There is an error
     else if (c == 0)
         buf[0] = '\0'; // Send back an empty string
     else
-        s[c - 2] = '\0'; // Replace the '\n' character with a '\0'
-    fprintf(stderr, "Received: %s, %i bytes\n", buf, len - slen);
+        s[c - 2] = '\0'; // Replace the '\r' character with a '\0'
     return len - slen; // Return the bytes read
 }
 
@@ -104,22 +102,31 @@ void service_client(int socket)
     char *questions[] = {
                         "Knock! Knock!\r\n",
                         "Oscar\r\n",
-                        "Oscar silly question, you get a silly answer\r\n"
                        };
+    char *valid_answers[] = {
+                             "Who's there?",
+                             "Oscar who?",
+                            };
+    char *final_sentence = "Oscar silly question, you get a silly answer\r\n";
     char answer[ANSWER_LEN];
-    char silence[] = "Next time say something";
-    char wrong_answer[] = "Wrong answer";
-    say(socket, questions[0]);
-    if (read_in(socket, answer, ANSWER_LEN) < 1)
-        disconnect_client(socket, silence);
-    else if (strcmp(answer, "Who's there?") != 0)
-        disconnect_client(socket, wrong_answer);
-    say(socket, questions[1]);
-    if (read_in(socket, answer, ANSWER_LEN) < 1)
-        disconnect_client(socket, silence);
-    else if (strcmp(answer, "Oscar who?") != 0)
-        disconnect_client(socket, wrong_answer);
-    disconnect_client(socket, questions[2]);
+    char silence[] = "Next time say something\r\n";
+    char wrong_answer[] = "Wrong answer\r\n";
+    int i;
+    for (i = 0; i < 2; i++)
+    {
+        say(socket, questions[i]);
+        if (read_in(socket, answer, ANSWER_LEN) < 3)
+        {
+            disconnect_client(socket, silence);
+            return;
+        }
+        else if (strncasecmp(answer, valid_answers[i], ANSWER_LEN) != 0)
+        {
+            disconnect_client(socket, wrong_answer);
+            return;
+        }
+    }
+    disconnect_client(socket, final_sentence);
 }
 
 int main(int argc, char *argv[])
