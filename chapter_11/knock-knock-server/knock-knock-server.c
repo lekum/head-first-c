@@ -86,6 +86,7 @@ void disconnect_client(int socket, char *msg)
 {
     say(socket, msg);
     close(socket);
+    exit(0);
 }
 
 int catch_signal(int sig, void (*handler)(int))
@@ -163,7 +164,19 @@ int main(int argc, char *argv[])
         if (connect_d == -1)
             error("Unable to open secondary socket");
 
-        service_client(connect_d);
+        if (!fork())
+        {
+            // Child
+            // Close listener socket
+            close(listener_d);
+            service_client(connect_d);
+        }
+        else
+        {
+            // Parent
+            // Close connect socket
+            close(connect_d);
+        }
     }
 
     return 0;
